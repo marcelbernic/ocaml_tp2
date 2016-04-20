@@ -246,7 +246,8 @@ module BF = Graph.Path.BellmanFord (G) (Poids)
 (* -- Principale classe du Tp                                                  *)
 (* ----------------------------------------                                    *)
 class gestionnaireReseau 
-    ?(rep = "/home/etudiant/workspace/tp2/googletransit/") () =
+    ?(rep = "/home/marcus/Developer/tp2/googletransit/") () =
+(*"/home/etudiant/workspace/tp2/googletransit/";;*)
   
   (* Abréviations *)
   let new_noeud = G.V.create 
@@ -358,7 +359,7 @@ class gestionnaireReseau
         self#print_stats;
         print_endline "CHARGEMENT DES DONNÉES ET CONSTRUCTION DU GRAPHE TERMINÉS" 
       end
-      
+    
     method lister_lignes = cles lignes
     method lister_stations = cles stations
     method nb_lignes = H.length lignes
@@ -478,7 +479,8 @@ class gestionnaireReseau
            else acc
         ) lignes []
 	
-    
+
+
     (* -- À IMPLANTER/COMPLÉTER (10 PTS) ------------------------------------- *)
     (* ----------------------------------------------------------------------- *)
     (* @Fonction      : lister_stations_sur_itineraire: ?date:int option ->    *)
@@ -492,12 +494,19 @@ class gestionnaireReseau
     (* @Postcondition : la liste retournée est correcte et l'état de l'objet   *)
     (*  		reste inchangé                                         *)
     (* ----------------------------------------------------------------------- *)
-    method lister_stations_sur_itineraire 
+     method lister_stations_sur_itineraire 
 	?(date = Some(date_actuelle ())) 
         (l_num : string) : (string * int list) list =
       (* Traitement correspondant aux  préconditions  *)
+       if not (H.mem lignes l_num) then raise (Erreur "Ligne inexistante");
+        (* !!! il reste la precondition pour la date !!! *)
       (* Traitement correspondant à la fonction *)
-      raise (Non_Implante "lister_stations_sur_itineraire")
+       let l = H.find lignes l_num in
+       let cles = self#trouver_voyages_sur_la_ligne l_num ~date in
+       let liste_voyages = L.map (fun x -> H.find voyages x) cles in      
+       l#stations_sur_itineraire_des_voyages liste_voyages
+      
+
 
 				
     (* ----------------------------------------------------------------------- *)
