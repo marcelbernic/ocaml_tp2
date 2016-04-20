@@ -5,7 +5,8 @@ open Utiles ;;
 open Date;;
 open Hashtbl ;;
 
-let rep = "/home/etudiant/workspace/tp2/googletransit/";;
+let rep = "/home/marcus/Developer/tp2/googletransit/";;
+(*"/home/etudiant/workspace/tp2/googletransit/";;*)
 
 (* --------------------------------------------------------------------------- *)
 (* -- FONCTIONS UTILES ------------------------------------------------------- *)
@@ -24,10 +25,10 @@ let assert_equal_list nom_test a b =
   if (a ++ b) = a then pass() else fail();;
 
 let assert_throw_exception nom_test lazy_expression =
-  match lazy_expression () with
+   match lazy_expression () with
   | exception (Erreur _) -> pass()
   | exception _ -> fail()
-  | _ -> fail();;
+  |  _ -> fail();;
 
 let assert_true nom_test lazy_expression =
   match lazy_expression () with
@@ -482,23 +483,26 @@ let test_plus() =
          1802; 1804; 1803; 1805; 1806] in 
       app#plans_possibles_pour_chemin ~date:(date_a_nbjours "20160330")
         ~heure:(heure_a_nbsecs "12:10:00") ch  in
-    let attendu = [[("111", 62520, 63480,
-                     [1999; 1787; 1776; 1790; 1791; 1793; 1794; 1795; 1796; 1798; 1799; 1801;
-                      1802]);
-  	            ("11", 64088, 64200, [1802; 1804; 1803; 1805; 1806])];
- 		   [("11", 45000, 45960,
-                     [1999; 1787; 1776; 1790; 1791; 1793; 1794; 1795; 1796; 1798; 1799; 1801;
-                      1802; 1804; 1803; 1805; 1806])]] in
+    let attendu = 
+      [[("111", 62520, 63480,
+         [1999; 1787; 1776; 1790; 1791; 1793; 1794; 1795; 1796; 1798; 1799; 1801;
+          1802]);
+        ("11", 64088, 64200, [1802; 1804; 1803; 1805; 1806])];
+       [("11", 45000, 45960,
+         [1999; 1787; 1776; 1790; 1791; 1793; 1794; 1795; 1796; 1798; 1799; 1801;
+          1802; 1804; 1803; 1805; 1806])]] in
     begin
       if (assert_equal "plans_possibles_pour_chemin @longueur_correct1" 
 	    (List.length obtenu) (List.length attendu)) 
       then () else comment := (!comment) @ [ "longueur incorrecte" ];
-
+      
       if (assert_equal_list "plans_possibles_pour_chemin @contenu_correct1" 
 	    obtenu attendu) 
       then () else comment := (!comment) @ [ "contenu incorrect" ];
     end;
-
+    
+    app#maj_toutes_aretes_reseau  ~date:(date_a_nbjours "20160402")
+      ~heure:(heure_a_nbsecs "12:10:00") ();
     let obtenu = 
       let ch = [1515; 1787; 1776; 1790; 1791; 2000; 2001; 2003; 2006; 1434; 
 		2007; 4144; 3099] in 
@@ -522,7 +526,7 @@ let test_plus() =
         ("801", 46680, 47280, [2000; 2001; 2003; 2006; 1434; 2007; 4144; 3099])];
        [("13", 44520, 44858, [1515; 1787; 1776; 1790; 1791]);
         ("87", 46096, 46237, [1791; 2000]);
-        ("800", 46200, 46800, [2000; 2001; 2003; 2006; 1434; 2007; 4144; 3099])];
+        ("800", 47100, 47700, [2000; 2001; 2003; 2006; 1434; 2007; 4144; 3099])];
        [("13", 44520, 44858, [1515; 1787; 1776; 1790; 1791]);
         ("87", 46096, 46237, [1791; 2000]);
         ("915", 92880, 93351, [2000; 2001; 2003; 2006; 1434; 2007; 4144; 3099])];
@@ -552,17 +556,17 @@ let test_plus() =
        [("16", 44220, 44750, [1515; 1787; 1776; 1790; 1791; 2000]);
         ("800", 45240, 45840, [2000; 2001; 2003; 2006; 1434; 2007; 4144; 3099])];
        [("16", 44220, 44750, [1515; 1787; 1776; 1790; 1791; 2000]);
-        ("915", 92880, 93351, [2000; 2001; 2003; 2006; 1434; 2007; 4144; 3099])]]in
+        ("915", 92880, 93351, [2000; 2001; 2003; 2006; 1434; 2007; 4144; 3099])]] in
     if (assert_equal "plans_possibles_pour_chemin @longueur_correct1" 
 	  (List.length obtenu) (List.length attendu)) 
     then () else comment := (!comment) @ [ "longueur incorrecte" ];
-
+    
     if (assert_equal_list "plans_possibles_pour_chemin @contenu_correct1" 
 	  obtenu attendu) 
     then () else comment := (!comment) @ [ "contenu incorrect" ];
-
+    
     !comment
-
+      
   with 
   | Non_Implante _ -> comment := (!comment) @ [ "Fonction non_implantee" ]; 
     !comment
