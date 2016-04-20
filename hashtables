@@ -1,0 +1,56 @@
+Hashtable <lignes>:
+
+clé:      ->   numero de la ligne
+valeur:   ->   objet ligne (ligne_id, numero, terminaux, le_type, stations_sur_itineraire, voyages)
+
+Hashtable <stations>:
+
+clé:      ->   station_id (int)
+valeur:   ->   objet station (station_id, nom, description, coords, embarque_chaise, lignes_passantes_ids, voyages_passants)
+
+Hashtable <voyages>:
+
+clé:      ->   "47308457-20161011multiint-11111100" (voyage_id)
+valeur:   ->   objet voyage (voyage_id, ligne_id, service_id, direction, itineraire_id, embarque_chaise, arret, stations_des_arrets, heure_depart, heure_fin)
+
+Hashtable <voyages_par_date>:
+
+clé:      ->   int (nombre des jours depuis 1970 ***)
+valeur:   ->   string list voyage_id (une liste de stri
+
+Hashtable <noeuds_stations>:
+
+clé:      ->   
+valeur:   ->
+
+Hashtable <voyages_par_service>:
+
+*** clé:      ->   "20161011multiint-11111100" (service_id)
+*** valeur:   ->   objet voyage (voyage_id, ligne_id, service_id, direction, itineraire_id, embarque_chaise, arret, stations_des_arrets, heure_depart, heure_fin)
+
+Hashtable <voyages_par_ligne>:
+
+*** clé:      ->   820820 (ligne_id)
+*** valeur:   ->   objet voyage (voyage_id, ligne_id, service_id, direction, itineraire_id, embarque_chaise, arret, stations_des_arrets, heure_depart, heure_fin)
+
+Hashtable <arrets_par_voyage>:
+
+clé:      ->   
+valeur:   ->
+
+Hashtable <arrets_par_station>:
+
+clé:      ->   
+valeur:   ->
+
+Hashtable <services>:
+
+clé:      ->   
+valeur:   ->
+
+Hashtable <identite>:
+
+clé:      ->   
+valeur:   ->
+
+
