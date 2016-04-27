@@ -673,13 +673,39 @@ class gestionnaireReseau
     (*                  G.mem_edge, G.remove_edge, G.add_edge_e                *) 
     (* ----------------------------------------------------------------------- *)
 
-  method (*private*) maj_etiquette_arete 
+   method (*private*) maj_etiquette_arete 
       ?(date = date_actuelle ())
       ?(heure = heure_actuelle ())
       (sid1 : G.V.label) (sid2 : G.V.label) : unit =
     (* Traitement correspondant aux préconditions *)
+
     (* Traitement correspondant à la fonction *)
-    raise (Non_Implante "maj_etiquette_arete")
+    let vd = self#trouver_voyages_par_date ~date:date () in
+    let st1 = (H.find stations sid1)#get_voyages_passants in
+    let st2 = (H.find stations sid2)#get_voyages_passants in
+    let st_list = st1 ++ st2 in
+    let vdstr_list = vd ++ st_list in
+    let vd_list = List.map (fun x -> app#get_obj_voyage x) vdstr_list in
+    let arret_list = List.map (fun x -> x#get_arrets) vd_list in
+    let arret_list_st = List.map (fun x -> List.filter (fun y ->
+        if y#get_station_id == 1445 || y#get_station_id == 1807 
+        then true 
+        else false) x) arret_list in
+    let arret_list_st_tps = List.map (fun x -> List.filter (fun y -> 
+        if y#get_depart < heure
+        then false
+        else true) x) arret_list_st in
+    let arret_list_st_tps_filtered = List.filter (fun x -> 
+        if x <> []
+        then true
+        else false) arret_list_st_tps in
+    let weight_list = List.map (fun x -> 
+        (List.nth x 1)#get_arrivee - (List.nth x 0)#get_depart) arret_list_st_tps_filtered in
+    let weigth = List.hd (List.sort (fun x y -> if x<y then 1 else -1) weight_list) in
+    let n1 = H.find self#get_noeuds sid1 in
+    let n2 = H.find self#get_noeuds sid2 in
+    let new_edge = G.E.create n1 weigth n2 in
+    G.remove_edge graphe_stations n1 n2 ; G.add_edge_e graphe_stations new_edge 
      
 
     (* ----------------------------------------------------------------------- *)
