@@ -677,6 +677,8 @@ class gestionnaireReseau
     (*                  G.mem_edge, G.remove_edge, G.add_edge_e                *) 
     (* ----------------------------------------------------------------------- *)
 
+	method get_obj_voyage vid = H.find voyages vid
+	 
     method (*private*) maj_etiquette_arete 
       ?(date = date_actuelle ())
       ?(heure = heure_actuelle ())
