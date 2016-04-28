@@ -246,7 +246,8 @@ module BF = Graph.Path.BellmanFord (G) (Poids)
 (* -- Principale classe du Tp                                                  *)
 (* ----------------------------------------                                    *)
 class gestionnaireReseau 
-
+   ?(rep = "/home/marcus/Developer/tp2/googletransit/") () =
+   (*"/home/etudiant/workspace/tp2/googletransit/";;*)
   
   (* Abréviations *)
   let new_noeud = G.V.create 
@@ -506,19 +507,7 @@ class gestionnaireReseau
        let cles = self#trouver_voyages_sur_la_ligne l_num ~date in
        let liste_voyages = L.map (fun x -> H.find voyages x) cles in      
        l#stations_sur_itineraire_des_voyages liste_voyages
-      
-(* ____________________________________________
-     method liste_voyages 
-       ?(date = Some(date_actuelle ())) 
-        (l_num : string) =
-      (* Traitement correspondant aux  préconditions  *)
-       if not (H.mem lignes l_num) then raise (Erreur "Ligne inexistante");
-      (* Traitement correspondant à la fonction *)  
-       let l = H.find lignes l_num in
-       let cles = self#trouver_voyages_sur_la_ligne l_num ~date in
-       L.map (fun x -> H.find voyages x) cles      
-   ____________________________________________*) 
- 
+
 
 				
     (* ----------------------------------------------------------------------- *)
@@ -553,10 +542,10 @@ class gestionnaireReseau
     (* 			étant données une date, une heure et une direction     *)
     (* @Precondition  : 1- la date doit être une clé existante dans la table   *)
     (* 			    voyages_par_date  			               *)
-    (* 		*	2- le numéro de la ligne existe                        *)
-    (* 		*	3- la station existe dans la table stations            *)
+    (* 			2- le numéro de la ligne existe                        *)
+    (* 			3- la station existe dans la table stations            *)
     (* 			4- la direction existe pour cette ligne	               *)
-    (* 		*	5- l'heure est positive ou nulle                       *)
+    (* 			5- l'heure est positive ou nulle                       *)
     (* 			6- plus d'arrets de la ligne à cette station           *)
     (* @Postcondition : le resultat retourné est correct et l'état de l'objet  *)
     (*  		reste inchangé                                         *)
@@ -567,35 +556,11 @@ class gestionnaireReseau
         (direction : direction) 
         (l_num : string) 
         (sid : G.V.label) : arret  =
-      (* Traitement correspondant aux préconditions *)
-<<<<<<< HEAD
-       if not (H.mem lignes l_num) then raise (Erreur "Ligne inexistante");
-       if heure < 0 then raise (Erreur "Heure négative");
-       if not (H.mem stations sid) then raise (Erreur "Station inexistante");
-      (* Traitement correspondant à la fonction *)
-       let vids_ligne=self#trouver_voyages_sur_la_ligne l_num ~date:(Some date) in
- 	let vids_station = let s=H.find stations sid in s#get_voyages_passants in
-     let vids = vids_ligne ++ vids_station in
-     let arrets = 
-       L.concat
-         (L.map 
-            (fun vid -> 
-               let v = H.find voyages vid in 
- 	      if v#get_direction = direction then v#get_arrets else []
-            ) vids
-         ) in
-     let arrets_station = L.filter (fun a -> a#get_station_id = sid) arrets in 
-     let arrets_horaires =
-      L.fold_left 
-         (fun acc arr -> 
-            let t = arr#get_arrivee in 
- 	   if t >= heure then arr::acc else acc
-         ) [] arrets_station in
-     let sorted_list = L.sort (fun x y -> if x#get_arrivee < y#get_arrivee then -1 else 1)  arrets_horaires in
-     List.hd sorted_list
-=======
-	  
-      (* Traitement correspondant à la fonction *)
+     (* Traitement correspondant aux préconditions *)
+     if not (H.mem lignes l_num) then raise (Erreur "Ligne inexistante");
+     if heure < 0 then raise (Erreur "Heure négative");
+     if not (H.mem stations sid) then raise (Erreur "Station inexistante");
+     (* Traitement correspondant à la fonction *)
     let vids_ligne=self#trouver_voyages_sur_la_ligne l_num ~date:(Some date) in
 	let vids_station = let s=H.find stations sid in s#get_voyages_passants in
     let vids = vids_ligne ++ vids_station in
@@ -616,7 +581,7 @@ class gestionnaireReseau
         ) [] arrets_station in
     let sorted_list = L.sort (fun x y -> if x#get_arrivee < y#get_arrivee then -1 else 1)  arrets_horaires in
     List.hd sorted_list
->>>>>>> cd3bfa7ef1f03aa0a992f11b87eb1d139268df0a
+
     
     (* -- À IMPLANTER/COMPLÉTER (15 PTS) ------------------------------------- *)
     (* ----------------------------------------------------------------------- *)
@@ -838,7 +803,7 @@ class gestionnaireReseau
     (* Remarque       : Fonctions du module G utilisées dans le corrigé:       *)
     (*                  G.shortest_path, G.V.label, G.E.src, G.E.dst           *) 
     (* ----------------------------------------------------------------------- *)
-  method plus_court_chemin 
+    method plus_court_chemin 
       (sid_dep : G.V.label) 
       (sid_dest : G.V.label) : G.V.label list = 
     (* Traitement correspondant aux préconditions *)
@@ -865,7 +830,7 @@ class gestionnaireReseau
     (* 			2- l'heure est positive ou nulle                       *)
     (* @Postcondition : l'état actuel de l'objet reste inchangé	               *)
     (* ----------------------------------------------------------------------- *)
-  method plans_possibles_pour_chemin 
+    method plans_possibles_pour_chemin 
       ?(date = date_actuelle ())
       ?(heure = heure_actuelle ()) chemin =
     let aretes = tuples_de_voisins chemin in 
