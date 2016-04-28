@@ -5,7 +5,7 @@ open Utiles ;;
 open Date;;
 open Hashtbl ;;
 
- ?(rep = "/home/marcus/Developer/tp2/googletransit/") () =
+let rep = "/home/marcus/Developer/tp2/googletransit/";; 
 (*"/home/etudiant/workspace/tp2/googletransit/";;*)
 
 
