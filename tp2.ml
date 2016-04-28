@@ -246,8 +246,7 @@ module BF = Graph.Path.BellmanFord (G) (Poids)
 (* -- Principale classe du Tp                                                  *)
 (* ----------------------------------------                                    *)
 class gestionnaireReseau 
-    ?(rep = "/home/marcus/Developer/tp2/googletransit/") () =
-(*"/home/etudiant/workspace/tp2/googletransit/";;*)
+
   
   (* Abréviations *)
   let new_noeud = G.V.create 
@@ -569,6 +568,7 @@ class gestionnaireReseau
         (l_num : string) 
         (sid : G.V.label) : arret  =
       (* Traitement correspondant aux préconditions *)
+<<<<<<< HEAD
        if not (H.mem lignes l_num) then raise (Erreur "Ligne inexistante");
        if heure < 0 then raise (Erreur "Heure négative");
        if not (H.mem stations sid) then raise (Erreur "Station inexistante");
@@ -593,6 +593,30 @@ class gestionnaireReseau
          ) [] arrets_station in
      let sorted_list = L.sort (fun x y -> if x#get_arrivee < y#get_arrivee then -1 else 1)  arrets_horaires in
      List.hd sorted_list
+=======
+	  
+      (* Traitement correspondant à la fonction *)
+    let vids_ligne=self#trouver_voyages_sur_la_ligne l_num ~date:(Some date) in
+	let vids_station = let s=H.find stations sid in s#get_voyages_passants in
+    let vids = vids_ligne ++ vids_station in
+    let arrets = 
+      L.concat
+        (L.map 
+           (fun vid -> 
+              let v = H.find voyages vid in 
+	      if v#get_direction = direction then v#get_arrets else []
+           ) vids
+        ) in
+    let arrets_station = L.filter (fun a -> a#get_station_id = sid) arrets in 
+    let arrets_horaires =
+     L.fold_left 
+        (fun acc arr -> 
+           let t = arr#get_arrivee in 
+	   if t >= heure then arr::acc else acc
+        ) [] arrets_station in
+    let sorted_list = L.sort (fun x y -> if x#get_arrivee < y#get_arrivee then -1 else 1)  arrets_horaires in
+    List.hd sorted_list
+>>>>>>> cd3bfa7ef1f03aa0a992f11b87eb1d139268df0a
     
     (* -- À IMPLANTER/COMPLÉTER (15 PTS) ------------------------------------- *)
     (* ----------------------------------------------------------------------- *)
@@ -688,13 +712,51 @@ class gestionnaireReseau
     (*                  G.mem_edge, G.remove_edge, G.add_edge_e                *) 
     (* ----------------------------------------------------------------------- *)
 
-  method (*private*) maj_etiquette_arete 
+    method (*private*) maj_etiquette_arete 
       ?(date = date_actuelle ())
       ?(heure = heure_actuelle ())
       (sid1 : G.V.label) (sid2 : G.V.label) : unit =
     (* Traitement correspondant aux préconditions *)
+    if not (H.mem voyages_par_date date) then
+      raise (Erreur "Date invalide ou pas prise en charge");
+    if not (H.mem stations sid1) && not (H.mem stations  sid2) then
+      raise (Erreur "Une station est inexistante");
+    if (heure < 0) then
+      raise (Erreur "Heure negative");
+  (*  if not (G.mem_edge  (H.find stations sid1) (H.find stations sid2)) then
+      raise (Erreur "L'arete n'existe pas"); *)
     (* Traitement correspondant à la fonction *)
-    raise (Non_Implante "maj_etiquette_arete")
+   (*  print_int  (sid1) ; print_endline " " ; print_int  (sid2);*)
+    let vd = self#trouver_voyages_par_date ~date:date () in
+    let st1 = (H.find stations sid1)#get_voyages_passants in
+    let st2 = (H.find stations sid2)#get_voyages_passants in
+    let st_list = st1 ++ st2 in
+    let vdstr_list = vd ++ st_list in
+    let vd_list = List.map (fun x -> self#get_obj_voyage x) vdstr_list in
+    let arret_list = List.map (fun x -> x#get_arrets) vd_list in
+    let arret_list_st = List.map (fun x -> List.filter (fun y ->
+        if y#get_station_id == sid1 || y#get_station_id == sid2 
+        then true 
+        else false) x) arret_list in
+    let arret_list_st_tps = List.map (fun x -> List.filter (fun y -> 
+        if y#get_depart < heure
+        then false
+        else true) x) arret_list_st in
+    let arret_list_st_tps_filtered = List.filter (fun x -> 
+        if x <> [] && L.length x = 2
+        then true
+        else false) arret_list_st_tps in
+    let weigth = 
+      if arret_list_st_tps_filtered == [] 
+      then poids_max_arete
+      else
+        let weight_list = List.map (fun x -> 
+            (List.nth x 1)#get_arrivee - (List.nth x 0)#get_depart) arret_list_st_tps_filtered in
+        List.hd (List.sort (fun x y -> if x<y then 1 else -1) weight_list) in
+    let n1 = H.find self#get_noeuds sid1 in
+    let n2 = H.find self#get_noeuds sid2 in
+    let new_edge = G.E.create n1 weigth n2 in
+    G.remove_edge graphe_stations n1 n2 ; G.add_edge_e graphe_stations new_edge 
      
 
     (* ----------------------------------------------------------------------- *)

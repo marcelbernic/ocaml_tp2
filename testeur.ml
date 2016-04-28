@@ -5,8 +5,7 @@ open Utiles ;;
 open Date;;
 open Hashtbl ;;
 
-let rep = "/home/marcus/Developer/tp2/googletransit/";;
-(*"/home/etudiant/workspace/tp2/googletransit/";;*)
+
 
 (* --------------------------------------------------------------------------- *)
 (* -- FONCTIONS UTILES ------------------------------------------------------- *)
