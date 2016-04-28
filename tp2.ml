@@ -359,10 +359,15 @@ class gestionnaireReseau
         self#print_stats;
         print_endline "CHARGEMENT DES DONNÉES ET CONSTRUCTION DU GRAPHE TERMINÉS" 
       end
+    (*---------------Methodes ajoutées---------------*)
     (* Mines *)
       method get_stations = stations
       method get_lignes = lignes
     (*------ *)
+
+    method get_obj_voyage vid = H.find voyages vid
+
+    (*-----------------------------------------------*)
     method lister_lignes = cles lignes
     method lister_stations = cles stations
     method nb_lignes = H.length lignes
@@ -384,7 +389,7 @@ class gestionnaireReseau
     (* @Description   : liste tous les numeros des lignes du réseau  groupés   *)	
     (*			par type dans la liste de types en paramètre           *)
     (* @Precondition  : aucune 						       *)
-    (* @Postcondition : la liste retournée est correcte et l'état de l'objet   *)
+    (* @Postcondition : la liste retournée est correcte et l'état de l'objet test  *)
     (*  		reste inchangé					       *)
     (* ----------------------------------------------------------------------  *)
     method lister_lignes_par_type
@@ -501,7 +506,8 @@ class gestionnaireReseau
         (l_num : string) : (string * int list) list =
       (* Traitement correspondant aux  préconditions  *)
        if not (H.mem lignes l_num) then raise (Erreur "Ligne inexistante");
-        (* !!! il reste la precondition pour la date !!! *)
+       (*if not (H.mem voyages_par_date date) then
+            raise (Erreur "Date invalide ou pas prise en charge");*) 
       (* Traitement correspondant à la fonction *)
        let l = H.find lignes l_num in
        let cles = self#trouver_voyages_sur_la_ligne l_num ~date in
@@ -558,8 +564,8 @@ class gestionnaireReseau
         (sid : G.V.label) : arret  =
      (* Traitement correspondant aux préconditions *)
      if not (H.mem lignes l_num) then raise (Erreur "Ligne inexistante");
-     if heure < 0 then raise (Erreur "Heure négative");
      if not (H.mem stations sid) then raise (Erreur "Station inexistante");
+     if heure < 0 then raise (Erreur "Heure négative");
      (* Traitement correspondant à la fonction *)
     let vids_ligne=self#trouver_voyages_sur_la_ligne l_num ~date:(Some date) in
 	let vids_station = let s=H.find stations sid in s#get_voyages_passants in
@@ -676,24 +682,21 @@ class gestionnaireReseau
     (* Remarque       : Fonctions du module G utilisées dans le corrigé:       *)
     (*                  G.mem_edge, G.remove_edge, G.add_edge_e                *) 
     (* ----------------------------------------------------------------------- *)
-
-	method get_obj_voyage vid = H.find voyages vid
 	 
     method (*private*) maj_etiquette_arete 
       ?(date = date_actuelle ())
       ?(heure = heure_actuelle ())
       (sid1 : G.V.label) (sid2 : G.V.label) : unit =
     (* Traitement correspondant aux préconditions *)
+    if not (H.mem stations sid1) then raise (Erreur "Station inexistante");
+    if not (H.mem stations sid2) then raise (Erreur "Station inexistante"); 
+    if heure < 0 then raise (Erreur "Heure négative");
+    if not (G.mem_edge (graphe_stations) 
+                   (H.find self#get_noeuds sid1) (H.find self#get_noeuds sid2))
+                   then raise (Erreur "Arete existe entre s1 et s2");
     if not (H.mem voyages_par_date date) then
-      raise (Erreur "Date invalide ou pas prise en charge");
-    if not (H.mem stations sid1) && not (H.mem stations  sid2) then
-      raise (Erreur "Une station est inexistante");
-    if (heure < 0) then
-      raise (Erreur "Heure negative");
-  (*  if not (G.mem_edge  (H.find stations sid1) (H.find stations sid2)) then
-      raise (Erreur "L'arete n'existe pas"); *)
-    (* Traitement correspondant à la fonction *)
-   (*  print_int  (sid1) ; print_endline " " ; print_int  (sid2);*)
+         raise (Erreur "Date invalide ou pas prise en charge"); 
+   (* Traitement correspondant à la fonction *)
     let vd = self#trouver_voyages_par_date ~date:date () in
     let st1 = (H.find stations sid1)#get_voyages_passants in
     let st2 = (H.find stations sid2)#get_voyages_passants in
@@ -718,7 +721,8 @@ class gestionnaireReseau
       then poids_max_arete
       else
         let weight_list = List.map (fun x -> 
-            (List.nth x 1)#get_arrivee - (List.nth x 0)#get_depart) arret_list_st_tps_filtered in
+            (List.nth x 1)#get_arrivee - (List.nth x 0)#get_depart) 
+               arret_list_st_tps_filtered in
         List.hd (List.sort (fun x y -> if x<y then 1 else -1) weight_list) in
     let n1 = H.find self#get_noeuds sid1 in
     let n2 = H.find self#get_noeuds sid2 in
@@ -903,6 +907,6 @@ class gestionnaireReseau
     (* Traitement correspondant aux préconditions *)
     (* Traitement correspondant à la fonction *)
     raise (Non_Implante "trouver_trajet_optimal")
-			            
-  end;;
+		            
+  end;; 
 
