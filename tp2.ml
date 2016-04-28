@@ -354,12 +354,15 @@ class gestionnaireReseau
                                           (H.find noeuds_stations s2)
             ) (uniques aretes)
         end;	
-      
+     
         (* Affichage d'informations utiles *)
         self#print_stats;
         print_endline "CHARGEMENT DES DONNÉES ET CONSTRUCTION DU GRAPHE TERMINÉS" 
       end
-    
+    (* Mines *)
+      method get_stations = stations
+      method get_lignes = lignes
+    (*------ *)
     method lister_lignes = cles lignes
     method lister_stations = cles stations
     method nb_lignes = H.length lignes
@@ -431,7 +434,6 @@ class gestionnaireReseau
       | Some d -> 
         let voyages_date = self#trouver_voyages_par_date ~date: d () in 
 	voyages_ligne ++ voyages_date
-
                 
     (* ----------------------------------------------------------------------- *)
     (* @Fonction      : trouver_stations_environnantes: coordonnees -> float ->*)
@@ -506,7 +508,18 @@ class gestionnaireReseau
        let liste_voyages = L.map (fun x -> H.find voyages x) cles in      
        l#stations_sur_itineraire_des_voyages liste_voyages
       
-
+(* ____________________________________________
+     method liste_voyages 
+       ?(date = Some(date_actuelle ())) 
+        (l_num : string) =
+      (* Traitement correspondant aux  préconditions  *)
+       if not (H.mem lignes l_num) then raise (Erreur "Ligne inexistante");
+      (* Traitement correspondant à la fonction *)  
+       let l = H.find lignes l_num in
+       let cles = self#trouver_voyages_sur_la_ligne l_num ~date in
+       L.map (fun x -> H.find voyages x) cles      
+   ____________________________________________*) 
+ 
 
 				
     (* ----------------------------------------------------------------------- *)
@@ -541,10 +554,10 @@ class gestionnaireReseau
     (* 			étant données une date, une heure et une direction     *)
     (* @Precondition  : 1- la date doit être une clé existante dans la table   *)
     (* 			    voyages_par_date  			               *)
-    (* 			2- le numéro de la ligne existe                        *)
-    (* 			3- la station existe dans la table stations            *)
+    (* 		*	2- le numéro de la ligne existe                        *)
+    (* 		*	3- la station existe dans la table stations            *)
     (* 			4- la direction existe pour cette ligne	               *)
-    (* 			5- l'heure est positive ou nulle                       *)
+    (* 		*	5- l'heure est positive ou nulle                       *)
     (* 			6- plus d'arrets de la ligne à cette station           *)
     (* @Postcondition : le resultat retourné est correct et l'état de l'objet  *)
     (*  		reste inchangé                                         *)
@@ -556,8 +569,30 @@ class gestionnaireReseau
         (l_num : string) 
         (sid : G.V.label) : arret  =
       (* Traitement correspondant aux préconditions *)
+       if not (H.mem lignes l_num) then raise (Erreur "Ligne inexistante");
+       if heure < 0 then raise (Erreur "Heure négative");
+       if not (H.mem stations sid) then raise (Erreur "Station inexistante");
       (* Traitement correspondant à la fonction *)
-      raise (Non_Implante "prochain_arret")
+       let vids_ligne=self#trouver_voyages_sur_la_ligne l_num ~date:(Some date) in
+ 	let vids_station = let s=H.find stations sid in s#get_voyages_passants in
+     let vids = vids_ligne ++ vids_station in
+     let arrets = 
+       L.concat
+         (L.map 
+            (fun vid -> 
+               let v = H.find voyages vid in 
+ 	      if v#get_direction = direction then v#get_arrets else []
+            ) vids
+         ) in
+     let arrets_station = L.filter (fun a -> a#get_station_id = sid) arrets in 
+     let arrets_horaires =
+      L.fold_left 
+         (fun acc arr -> 
+            let t = arr#get_arrivee in 
+ 	   if t >= heure then arr::acc else acc
+         ) [] arrets_station in
+     let sorted_list = L.sort (fun x y -> if x#get_arrivee < y#get_arrivee then -1 else 1)  arrets_horaires in
+     List.hd sorted_list
     
     (* -- À IMPLANTER/COMPLÉTER (15 PTS) ------------------------------------- *)
     (* ----------------------------------------------------------------------- *)
@@ -745,9 +780,15 @@ class gestionnaireReseau
       (sid_dep : G.V.label) 
       (sid_dest : G.V.label) : G.V.label list = 
     (* Traitement correspondant aux préconditions *)
+    if not (H.mem stations sid_dep) then raise (Erreur "Station inexistante");
+    if not (H.mem stations sid_dest) then raise (Erreur "Station inexistante");
     (* Traitement correspondant à la fonction *)
-    raise (Non_Implante "plus_court_chemin")
-			    
+    let st1 = H.find self#get_noeuds sid_dep in  (*trouver premiere station*)
+    let st2 = H.find self#get_noeuds sid_dest in (*trouver deuxieme station*)
+    let liste = fst(G.shortest_path (self#get_graphe) st1 st2) in
+    let tailListe = L.nth liste ((L.length liste)-1) in (*dernier el. de liste*)
+    let lastStation = [G.V.label (G.E.dst tailListe)] in  (*derniere station*)
+    (L.map (fun x -> G.V.label (G.E.src x)) liste) @ lastStation
 
     (* ----------------------------------------------------------------------- *)
     (* @Fonction      : plans_possibles_pour_chemin : ?date:int ->             *)
