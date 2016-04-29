@@ -103,6 +103,7 @@ let new_type_ligne couleur = match couleur with
   | other -> print_string other; 
     raise (Failure "La couleur du bus est invalide");;
 
+
 class ligne liste (liste_voyages: voyage list) =
   
   let reconstruire_itineraire liste_arrets_des_voyages =
@@ -563,10 +564,15 @@ class gestionnaireReseau
         (l_num : string) 
         (sid : G.V.label) : arret  =
      (* Traitement correspondant aux préconditions *)
+     if not (H.mem voyages_par_date date) then
+            raise (Erreur "Date invalide ou pas prise en charge");
      if not (H.mem lignes l_num) then raise (Erreur "Ligne inexistante");
      if not (H.mem stations sid) then raise (Erreur "Station inexistante");
-     if heure < 0 then raise (Erreur "Heure négative");
-     (* Traitement correspondant à la fonction *)
+     (*4*)
+     if heure < 0 then raise (Erreur "Heure negative");
+     if L.length (self#trouver_horaire direction l_num sid ~date:date ~heure:heure) = 0 then
+            raise (Erreur "Plus d'arrets a la station");
+     (* Traitement correspondant à la fonction *) 
     let vids_ligne=self#trouver_voyages_sur_la_ligne l_num ~date:(Some date) in
 	let vids_station = let s=H.find stations sid in s#get_voyages_passants in
     let vids = vids_ligne ++ vids_station in
