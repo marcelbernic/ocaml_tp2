@@ -825,15 +825,30 @@ class gestionnaireReseau
     (*                 - Fonctions du module BF utilisées dans le corrigé:     *)
     (*                   BF.all_shortest_paths, BF.H.fold                      *) 
     (* ----------------------------------------------------------------------- *)		
-							
+	
+	(* recupere seulement les stations qui sont autour de coord2 *)
+  method get_st_linked hasht l2 x =
+    BF.H.fold (fun k u acc -> if (L.mem (G.V.label k) l2) then  (fst x, G.V.label k, u)::acc  else acc) hasht []
+
   method paires_stations_possibles 
       ?(rmax = distance_max_pieds) 
       (coord1 : coordonnees) 
       (coord2 : coordonnees) : (G.V.label * G.V.label * float * float) list =
     (* Traitement correspondant aux préconditions *)
+    if (rmax < 0.) then raise (Erreur "Rayon négatif"); 
+    if not coord1#is_valid_gps || not coord2#is_valid_gps then raise (Erreur "Coordonnees invalides");
     (* Traitement correspondant à la fonction *)
-    raise (Non_Implante "paires_stations_possible")
-      
+    let l1 = self#trouver_stations_environnantes coord1 rmax in (* liste stations autour de coord1 *)
+    let l2 = L.map (fun x -> fst x) (self#trouver_stations_environnantes coord2 rmax) in (* liste stations autour de coord2 *)
+    let list = L.map ( fun x -> 
+        let hasht = BF.all_shortest_paths self#get_graphe (H.find self#get_noeuds (fst x)) in
+        let list_unsorted = self#get_st_linked hasht l2 x in
+        L.sort (fun (_, _, x) (_, _, y) -> if x < y then -1 else 1) list_unsorted
+      ) l1 in (* Liste des stations par poid pour chaque station de l1 *)
+    let top20 = L.sort (fun (_, _, x) (_, _, y) -> if x < y then -1 else 1) (L.concat list) in (* listes totales des stations triees *)
+    first_slice (List.map (fun (a, b, c) -> (a, b,
+                                             coord1#distance (H.find stations a)#get_coords ,
+                                             coord2#distance (H.find stations b)#get_coords)) top20) 20 (* affichage correct *)
 		   
     (* -- À IMPLANTER/COMPLÉTER (10 PTS) ------------------------------------- *)
     (* ----------------------------------------------------------------------- *)
