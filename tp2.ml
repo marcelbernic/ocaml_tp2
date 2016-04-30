@@ -619,9 +619,40 @@ class gestionnaireReseau
         (sid_dep : G.V.label) 
         (sid_dest : G.V.label) : (string * int * int) list =
       (* Traitement correspondant aux préconditions *)
+      if not (H.mem voyages_par_date date) then
+         raise (Erreur "Date invalide ou pas prise en charge"); 
+      if not (H.mem stations sid_dep) then raise (Erreur "Station inexistante");
+      if not (H.mem stations sid_dest) then raise (Erreur "Station inexistante");
+      if heure < 0 then raise (Erreur "Heure négative");
       (* Traitement correspondant à la fonction *)
-      raise (Non_Implante "prochaines_lignes_entre")
-	
+      let lignesDate =
+      let l1 = self#lister_lignes_passantes sid_dep in
+      let l11 = L.filter (fun x -> self#ligne_passe_par_station 
+                                ~date:(Some (date)) x sid_dep) l1 in
+      let l2 = self#lister_lignes_passantes sid_dest in
+      let l22 = L.filter (fun x -> self#ligne_passe_par_station 
+                                ~date:(Some (date)) x sid_dest) l2 in
+      l11 ++ l22 in 
+      let result =
+      L.map (fun ligne -> 
+         let objetLigne = H.find lignes ligne in
+         let direction = 
+         match 
+            ([sid_dep;sid_dest] ++ snd(L.nth (objetLigne#get_stations_sur_itineraire) 0)) 
+         with
+         |_::_::[] -> AllerVers 
+         (fst(L.nth (self#lister_stations_sur_itineraire ligne ~date:(Some(date))) 0))
+         |_  ->       AllerVers 
+         (fst(L.nth (self#lister_stations_sur_itineraire ligne ~date:(Some(date))) 1))
+         in
+         let horaire1 = self#trouver_horaire direction ligne sid_dep ~date:date ~heure:heure in 
+         let horaire2 = self#trouver_horaire direction ligne sid_dest ~date:date ~heure:heure in 
+         if (L.length horaire1 = 0 || L.length horaire2 = 0) 
+            then ("err", 0, 0)
+            else (ligne, heure_a_nbsecs (L.hd horaire1), heure_a_nbsecs (L.hd horaire2))
+      ) (L.rev lignesDate) in
+      result -- [("err", 0, 0)]
+
 
     (* ----------------------------------------------------------------------- *)
     (* @Fonction      : trouver_horaire : ?date:int -> ?heure:int -> direction *)
