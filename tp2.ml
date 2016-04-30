@@ -364,6 +364,7 @@ class gestionnaireReseau
     (* Mines *)
       method get_stations = stations
       method get_lignes = lignes
+      method get_voyages = voyages
     (*------ *)
 
     method get_obj_voyage vid = H.find voyages vid
@@ -637,14 +638,16 @@ class gestionnaireReseau
       L.map (fun ligne -> 
          let objetLigne = H.find lignes ligne in
          let direction = 
-         match 
-            ([sid_dep;sid_dest] ++ snd(L.nth (objetLigne#get_stations_sur_itineraire) 0)) 
-         with
-         |_::_::[] -> AllerVers 
-         (fst(L.nth (self#lister_stations_sur_itineraire ligne ~date:(Some(date))) 0))
-         |_  ->       AllerVers 
-         (fst(L.nth (self#lister_stations_sur_itineraire ligne ~date:(Some(date))) 1))
-         in
+	   let voy_sur_la_ligne = self#trouver_voyages_sur_la_ligne ~date:(Some(date)) ligne in
+	   let voy_sur_la_ligne_obj = L.map (fun x -> H.find voyages x) voy_sur_la_ligne in
+	   let sid_dep_obj = H.find stations sid_dep in
+	   let sid_dest_obj = H.find stations sid_dest in
+	   let voy_sur_sid_dep = L.map (fun x -> H.find voyages x) sid_dep_obj#get_voyages_passants in
+	   let voy_sur_sid_dest = L.map (fun x -> H.find voyages x) sid_dest_obj#get_voyages_passants in
+	   let intersect = voy_sur_sid_dep ++ voy_sur_sid_dest in
+	   let totalIntersect = intersect ++ voy_sur_la_ligne_obj in
+           (L.hd totalIntersect)#get_direction
+           in
          let horaire1 = self#trouver_horaire direction ligne sid_dep ~date:date ~heure:heure in 
          let horaire2 = self#trouver_horaire direction ligne sid_dest ~date:date ~heure:heure in 
          if (L.length horaire1 = 0 || L.length horaire2 = 0) 
