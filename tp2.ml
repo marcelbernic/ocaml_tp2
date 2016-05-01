@@ -247,8 +247,7 @@ module BF = Graph.Path.BellmanFord (G) (Poids)
 (* -- Principale classe du Tp                                                  *)
 (* ----------------------------------------                                    *)
 class gestionnaireReseau 
-   ?(rep = "/home/marcus/Developer/tp2/googletransit/") () =
-   (*"/home/etudiant/workspace/tp2/googletransit/";;*)
+  ?(rep = "/home/etudiant/workspace/tp2/googletransit/") () =
   
   (* Abréviations *)
   let new_noeud = G.V.create 
@@ -361,14 +360,13 @@ class gestionnaireReseau
         print_endline "CHARGEMENT DES DONNÉES ET CONSTRUCTION DU GRAPHE TERMINÉS" 
       end
     (*---------------Methodes ajoutées---------------*)
-    (* Mines *)
-      method get_stations = stations
-      method get_lignes = lignes
-      method get_voyages = voyages
-    (*------ *)
-
+ 
     method get_obj_voyage vid = H.find voyages vid
 
+    (* recupere seulement les stations qui sont autour de coord2 *)
+    method get_st_linked hasht l2 x =
+        BF.H.fold (fun k u acc -> if (L.mem (G.V.label k) l2) 
+	          then (fst x, G.V.label k, u)::acc  else acc) hasht []
     (*-----------------------------------------------*)
     method lister_lignes = cles lignes
     method lister_stations = cles stations
@@ -827,10 +825,6 @@ class gestionnaireReseau
     (*                 - Fonctions du module BF utilisées dans le corrigé:     *)
     (*                   BF.all_shortest_paths, BF.H.fold                      *) 
     (* ----------------------------------------------------------------------- *)		
-	
-	(* recupere seulement les stations qui sont autour de coord2 *)
-  method get_st_linked hasht l2 x =
-    BF.H.fold (fun k u acc -> if (L.mem (G.V.label k) l2) then  (fst x, G.V.label k, u)::acc  else acc) hasht []
 
   method paires_stations_possibles 
       ?(rmax = distance_max_pieds) 
