@@ -638,21 +638,23 @@ class gestionnaireReseau
       L.map (fun ligne -> 
          let objetLigne = H.find lignes ligne in
          let direction = 
-	   let voy_sur_la_ligne = self#trouver_voyages_sur_la_ligne ~date:(Some(date)) ligne in
-	   let voy_sur_la_ligne_obj = L.map (fun x -> H.find voyages x) voy_sur_la_ligne in
-	   let sid_dep_obj = H.find stations sid_dep in
-	   let sid_dest_obj = H.find stations sid_dest in
-	   let voy_sur_sid_dep = L.map (fun x -> H.find voyages x) sid_dep_obj#get_voyages_passants in
-	   let voy_sur_sid_dest = L.map (fun x -> H.find voyages x) sid_dest_obj#get_voyages_passants in
-	   let intersect = voy_sur_sid_dep ++ voy_sur_sid_dest in
-	   let totalIntersect = intersect ++ voy_sur_la_ligne_obj in
-           (L.hd totalIntersect)#get_direction
-           in
-         let horaire1 = self#trouver_horaire direction ligne sid_dep ~date:date ~heure:heure in 
-         let horaire2 = self#trouver_horaire direction ligne sid_dest ~date:date ~heure:heure in 
-         if (L.length horaire1 = 0 || L.length horaire2 = 0) 
+	    let voy_sur_la_ligne = self#trouver_voyages_sur_la_ligne ~date:(Some(date)) ligne in
+	    let voy_sur_la_ligne_obj = L.map (fun x -> H.find voyages x) voy_sur_la_ligne in
+	    let sid_dep_obj = H.find stations sid_dep in
+	    let sid_dest_obj = H.find stations sid_dest in
+	    let voy_sur_sid_dep = L.map (fun x -> H.find voyages x) sid_dep_obj#get_voyages_passants in
+	    let voy_sur_sid_dest = L.map (fun x -> H.find voyages x) sid_dest_obj#get_voyages_passants in
+	    let intersect = voy_sur_sid_dep ++ voy_sur_sid_dest in
+	    let totalIntersect = intersect ++ voy_sur_la_ligne_obj in
+            (L.hd totalIntersect)#get_direction
+            in      
+            if ( (L.length (self#trouver_horaire direction ligne sid_dep ~date:date ~heure:heure) = 0) ||
+	         (L.length (self#trouver_horaire direction ligne sid_dest ~date:date ~heure:heure) = 0)) 
             then ("err", 0, 0)
-            else (ligne, heure_a_nbsecs (L.hd horaire1), heure_a_nbsecs (L.hd horaire2))
+	    else
+                 let arret1 = self#prochain_arret direction ligne sid_dep ~date:date ~heure:heure in 
+                 let arret2 = self#prochain_arret direction ligne sid_dest ~date:date ~heure:heure in
+                 (ligne, arret1#get_arrivee, arret2#get_arrivee)
       ) (L.rev lignesDate) in
       result -- [("err", 0, 0)]
 
